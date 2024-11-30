@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/RocketiumHackathon/LunarPitch/')
+sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/RocketiumHackathon/LunarPitch/scraper/')
 from time import sleep
 from selenium.common.exceptions import (
     NoSuchElementException,

@@ -44,6 +44,15 @@ class DatabaseManager:
                 )
                 """)
 
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS cached_replies (
+                    tweet_id TEXT PRIMARY KEY,
+                    text_reply TEXT,
+                    meme_reply_url TEXT,
+                    gif_reply_path TEXT
+                )
+                """)
+
         conn.commit()
         conn.close()
 
@@ -68,13 +77,13 @@ class DatabaseManager:
         conn.close()
         return list(map(lambda a: a[1], users))
 
-    # def delete_user(self, user_name):
-    #     conn = self._connect()
-    #     cursor = conn.cursor()
-    #     cursor.execute("DELETE FROM users WHERE username = ?", (user_name,))
-    #     conn.commit()
-    #     conn.close()
-    #     print(f"User with ID {user_name} deleted successfully.")
+    def delete_user(self, user_name):
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE username = ?", (user_name,))
+        conn.commit()
+        conn.close()
+        print(f"User with ID {user_name} deleted successfully.")
 
     # CRUD Operations for Tweets
     def clean_data(self, df):
@@ -168,3 +177,33 @@ class DatabaseManager:
         finally:
             conn.close()
         return result
+
+    def cache_reply(self, tweet_id, text_reply, meme_reply_url, gif_reply_path):
+        """Insert or update cached replies."""
+        conn = self._connect()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""
+            INSERT INTO cached_replies (tweet_id, text_reply, meme_reply_url, gif_reply_path)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(tweet_id) DO UPDATE SET
+                text_reply = excluded.text_reply,
+                meme_reply_url = excluded.meme_reply_url,
+                gif_reply_path = excluded.gif_reply_path
+            """, (tweet_id, text_reply, meme_reply_url, gif_reply_path))
+        except sqlite3.IntegrityError as e:
+            print(f"Error caching reply for tweet_id {tweet_id}: {e}")
+        finally:
+            conn.commit()
+            conn.close()
+
+    def get_cached_reply(self, tweet_id):
+        """Fetch a cached reply for a tweet_id."""
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("SELECT text_reply, meme_reply_url, gif_reply_path FROM cached_replies WHERE tweet_id = ?",
+                       (tweet_id,))
+        reply = cursor.fetchone()
+        conn.close()
+        return reply

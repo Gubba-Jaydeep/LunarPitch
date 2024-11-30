@@ -22,4 +22,13 @@ async def get_users():
     users = db_manager.execute_query(READ_USERS_QUERY, fetch_all=True)
     if not users:
         raise HTTPException(status_code=404, detail="No users found.")
-    return [user[1] for user in users]  # Return only usernames
+    return [user[1] for user in users]
+
+
+@router.post("/delete_user")
+async def delete_users(user_request: UserRequest):
+    """Fetch all users."""
+    for username in user_request.usernames:
+        users = db_manager.delete_user(username)
+    return "success"
+# Return only usernames

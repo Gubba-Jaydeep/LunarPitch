@@ -1,5 +1,10 @@
 import os
 import sys
+
+from selenium.webdriver.remote.webelement import WebElement
+
+sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/RocketiumHackathon/LunarPitch/')
+sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/RocketiumHackathon/LunarPitch/scraper/')
 import pandas as pd
 from progress import Progress
 from scroller import Scroller
@@ -9,8 +14,6 @@ from datetime import datetime
 from fake_headers import Headers
 from time import sleep
 
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
@@ -19,6 +22,14 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.action_chains import ActionChains
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
+
 
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -137,6 +148,8 @@ class Twitter_Scraper:
         browser_option.add_argument("--disable-notifications")
         browser_option.add_argument("--disable-popup-blocking")
         browser_option.add_argument("--user-agent={}".format(header))
+        browser_option.add_argument("--width=3560")
+        browser_option.add_argument("--height=2440")
         if proxy is not None:
             browser_option.add_argument("--proxy-server=%s" % proxy)
 
@@ -609,3 +622,24 @@ It may be due to the following:
 
     def get_tweets(self):
         return self.data
+
+    def post_tweet(self, tweet_id, tweet_content):
+        self.driver.get(f"https://x.com/zomato/status/{tweet_id}")
+        sleep(3)
+        element = self.driver.find_element(By.XPATH, "//*[contains(text(),'Post your reply')]/../../../../..")
+        element.click()
+
+        editor = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@class='DraftEditor-editorContainer']"))
+        )
+        editor.click()
+        actions = ActionChains(self.driver)
+        actions.send_keys(tweet_content)
+        actions.perform()
+        reply_button = self.driver.find_element(By.XPATH, "//span[contains(text(),'Reply')]")
+
+        reply_button.click()
+        sleep(5)
+        return "Reply posted successfully."
+
+

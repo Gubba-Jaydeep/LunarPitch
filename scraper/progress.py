@@ -1,5 +1,6 @@
 import sys
-
+sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/RocketiumHackathon/LunarPitch/')
+sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/RocketiumHackathon/LunarPitch/scraper/')
 
 class Progress:
     def __init__(self, current, total) -> None:
