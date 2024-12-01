@@ -9,6 +9,11 @@ class PostTweetRequest(BaseModel):
     tweet_id: str
     tweet_content: str
 
+class ScheduledPostTweetRequest(BaseModel):
+    tweet_id: str
+    tweet_content: str
+    time_to_post: str
+
 # Response Models
 class TweetResponse(BaseModel):
     tweet_id: str

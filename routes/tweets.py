@@ -8,7 +8,7 @@ sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/Rocketium
 from fastapi import APIRouter, Query, HTTPException
 from typing import List, Optional
 from database.manager import DatabaseManager
-from database.models import TweetResponse
+from database.models import TweetResponse, ScheduledPostTweetRequest
 from database.queries import READ_TWEETS_QUERY
 
 from services.text_generation import generate_text_reply
@@ -50,6 +50,7 @@ async def get_tweets(
         result.extend(tweets)
 
     if result:
+        result.sort(key=lambda row: datetime.fromisoformat(row[3]).timestamp(), reverse=True)
         return [
             TweetResponse(
                 tweet_id=row[0],
@@ -87,7 +88,7 @@ async def get_tweets(
     if len(df) > 0:
         cleaned_df = db_manager.clean_data(df)
         db_manager.insert_tweets(cleaned_df)
-        return [
+        res = [
             TweetResponse(
                 tweet_id=row["Tweet ID"],
                 name=row["Name"],
@@ -107,6 +108,9 @@ async def get_tweets(
             )
             for _, row in cleaned_df.iterrows()
         ]
+        res.sort(key=lambda x: datetime.strptime('2024 '+x.timestamp, "%Y %d %b %HH %MM").timestamp(), reverse=True)
+
+        return res
 
     raise HTTPException(status_code=404, detail="No tweets found for the given handles.")
 
@@ -161,7 +165,7 @@ async def post_tweet(post_tweet_request: PostTweetRequest):
     return "Success"
 
 @router.post("/schedule_post/")
-async def schedule_post(tweet_id: str, tweet_content: str, time_to_post: str):
+async def schedule_post(scheduled_post_tweet: ScheduledPostTweetRequest):
     """
     Schedule a tweet to be posted at a specific time.
     Args:
@@ -171,12 +175,12 @@ async def schedule_post(tweet_id: str, tweet_content: str, time_to_post: str):
     """
     try:
         # Validate time_to_post format
-        post_time = datetime.fromisoformat(time_to_post)
+        post_time = datetime.fromisoformat(scheduled_post_tweet.time_to_post)
         if post_time <= datetime.now():
             raise HTTPException(status_code=400, detail="Time to post must be in the future.")
 
         # Add the scheduled post to the database
-        db_manager.add_scheduled_post(tweet_id, tweet_content, post_time)
+        db_manager.add_scheduled_post(scheduled_post_tweet.tweet_id, scheduled_post_tweet.tweet_content, post_time)
         return {"message": "Tweet scheduled successfully."}
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid time_to_post format.")
