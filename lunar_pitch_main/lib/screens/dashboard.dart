@@ -159,11 +159,25 @@ class _DashboardPageState extends State<DashboardPage> {
                                         ),
                                         SizedBox(width: 10),
                                         Expanded(
-                                          child: Text(
-                                            recentPosts[index].content,
-                                            style: TextStyle(fontSize: 16),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                      recentPosts[index].handle,
+                                                      style:
+                                                          TextStyle(fontSize: 14),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                              Text(
+                                                recentPosts[index].content,
+                                                style: TextStyle(fontSize: 16),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -177,11 +191,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                               fontSize: 14, color: AppColors.black),
                                         ),
                                         SizedBox(width: 10),
-                                        Text(
-                                          recentPosts[index].tags,
-                                          style: TextStyle(
-                                              fontSize: 14, color: AppColors.black),
-                                        ),
+                                        
                                       ],
                                     ),
                                     SizedBox(height: 10),

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+// const url = "http://0.0.0.0:8000";
+const url = "http://10.1.222.201:8000";
+
 // Define the structure of the response (TweetResponse)
 class TweetResponse {
   final String tweet_id;
@@ -165,8 +168,7 @@ Map<String, List<Map<String, String>>> createMetricsMapNoFuture(List<TweetRespon
       {"title": "analytics", "metric": tweet.analytics.toString()},
       {"title": "likes", "metric": tweet.likes.toString()},
       {"title": "comments", "metric": tweet.comments.toString()},
-      {"title": "retweets", "metric": tweet.retweets.toString()},
-      {"title": "saved", "metric": "Value 5"} // Add any other metric you need
+      {"title": "retweets", "metric": tweet.retweets.toString()}// Add any other metric you need
     ];
 
     // Store the metrics list in the map, keyed by tweet_id

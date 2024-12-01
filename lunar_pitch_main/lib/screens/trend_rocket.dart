@@ -28,6 +28,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
 
   // Dummy data for row 1 in the 3rd column
   late SuggestedReply row1Data;
+  late ScrollController _scrollController;
 
   // Dummy data for row 2 in the 3rd column
   List<Map<String, dynamic>> row2Data = [
@@ -49,6 +50,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
   void initState() {
     super.initState();
     loadData();
+    _scrollController = ScrollController();
   }
 
   Future<void> loadData() async {
@@ -72,44 +74,185 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
 
   void _showEditDialog(BuildContext context) {
     TextEditingController _controller = TextEditingController();
-    _controller.text = row1Data.textReply;  // Pre-fill with existing reply text
+    _controller.text = row1Data.textReply; // Pre-fill with existing reply text
+
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
 
     showDialog(
-      context: context,
-      builder: (context) {
+  context: context,
+  builder: (context) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isLoading = false; // Tracks if loading is ongoing
         return AlertDialog(
           title: Text("Edit Suggested Reply"),
-          content: TextField(
-            controller: _controller,
-            maxLines: 5, // Allow multi-line input
-            decoration: InputDecoration(
-              hintText: "Edit your reply...",
-              border: OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _controller,
+                  maxLines: 5, // Allow multi-line input
+                  decoration: InputDecoration(
+                    hintText: "Edit your reply...",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        selectedDate != null
+                            ? "Date: ${selectedDate!.day.toString().padLeft(2, '0')}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.year}"
+                            : "Pick a date",
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        DateTime? date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            selectedDate = date;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        selectedTime != null
+                            ? "Time: ${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}"
+                            : "Pick a time",
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.access_time),
+                      onPressed: () async {
+                        TimeOfDay? time = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (time != null) {
+                          setState(() {
+                            selectedTime = time;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                if (isLoading)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: CircularProgressIndicator(),
+                  ),
+              ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                // Close the dialog without saving
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
               child: Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
-                // You can handle the updated text here
-                String updatedText = _controller.text;
-                print("Updated text: $updatedText");  // Or update the state as needed
-                postTweet(selectedTweetId, updatedText);
-                // Close the dialog
-                Navigator.of(context).pop();
-              },
-              child: Text("Save"),
+              onPressed: isLoading
+                  ? null // Disable button if loading
+                  : () async {
+                      if (true) {
+                        setState(() {
+                          isLoading = true; // Start loading
+                        });
+
+                        String updatedText = _controller.text;
+
+                        try {
+                          String response = await postTweet(
+                            selectedTweetId,
+                            updatedText,
+                          );
+                          Navigator.of(context).pop(); // Close the dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Tweet posted successfully'),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Tweet posted successfully')),
+                          );
+                        } finally {
+                          setState(() {
+                            isLoading = false; // Stop loading
+                          });
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Please select date and time')),
+                        );
+                      }
+                    },
+              child: Text("Post"),
             ),
+            TextButton(
+              onPressed: isLoading
+                  ? null // Disable button if loading
+                  : () async {
+                      if (selectedDate != null && selectedTime != null) {
+                        setState(() {
+                          isLoading = true; // Start loading
+                        });
+
+                        String updatedText = _controller.text;
+
+                        try {
+                          // String response = await postTweet(
+                          //   selectedTweetId,
+                          //   updatedText,
+                          // );
+                          Navigator.of(context).pop(); // Close the dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Tweet scheduled successfully'),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to schedule tweet')),
+                          );
+                        } finally {
+                          setState(() {
+                            isLoading = false; // Stop loading
+                          });
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Please select date and time')),
+                        );
+                      }
+                    },
+              child: Text("Schedule"),
+            )
           ],
         );
       },
     );
+  },
+);
+
   }
 
   @override
@@ -187,6 +330,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                           height: 650,
                           child: ListView.separated(
                             shrinkWrap: true,
+                            controller: _scrollController,
                             physics: AlwaysScrollableScrollPhysics(),
                             itemCount: recentPosts.length,
                             itemBuilder: (context, index) {
@@ -206,9 +350,12 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                                   // Fetch the new row1Data after updating selectedTweetId
                                   row1Data =
                                       await getSuggestedReply(selectedTweetId);
+                                  setState(() {
+                                    row1Data;
+                                  });
                                 },
                                 child: Container(
-                                  color: selectedTweetId == index
+                                  color: selectedTweetId == recentPosts[index].tweet_id
                                       ? AppColors.light_grey
                                       : AppColors.white,
                                   child: Padding(
@@ -231,13 +378,27 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                                               child: Container(
                                                 constraints: BoxConstraints(
                                                     maxWidth: 300),
-                                                child: Text(
-                                                  recentPosts[index].content,
-                                                  style:
-                                                      TextStyle(fontSize: 16),
-                                                  maxLines: 5,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      recentPosts[index].handle,
+                                                      style:
+                                                          TextStyle(fontSize: 16),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    Text(
+                                                      recentPosts[index].content,
+                                                      style:
+                                                          TextStyle(fontSize: 16),
+                                                      maxLines: 5,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
@@ -251,10 +412,6 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                                               style: TextStyle(fontSize: 14),
                                             ),
                                             SizedBox(width: 10),
-                                            Text(
-                                              recentPosts[index].tags,
-                                              style: TextStyle(fontSize: 14),
-                                            ),
                                           ],
                                         ),
                                         SizedBox(height: 10),
@@ -266,7 +423,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                             },
                             separatorBuilder: (context, index) {
                               return Divider(
-                                color: Colors.grey,
+                                color: AppColors.grey,
                                 thickness: 1,
                               );
                             },
@@ -302,7 +459,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                         color: AppColors.white,
                         elevation: 3,
                         child: Container(
-                          height: 128.80, // Fixed height for each card
+                          height: 160, // Fixed height for each card
                           width: 150, // Fixed width for each card
                           child: Center(
                             child: Row(
@@ -348,7 +505,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
             children: [
               // Row 1: Card with dynamic content
               GestureDetector(
-                onTap: (){
+                onTap: () {
                   _showEditDialog(context);
                 },
                 child: Container(
@@ -358,33 +515,73 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                     color: AppColors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Suggested Reply",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      SizedBox(width: 8.0,),
+                                      Text(
+                                        "Suggested Reply",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5),
+                                  Text(
+                                    "@SpallingMistake",
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  Text(
+                                    row1Data.textReply,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    row1Data.hashtags,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 5),
-                            Text(
-                              row1Data.textReply,
-                              style: TextStyle(fontSize: 16),
+                          ),
+                          SizedBox(height: 10), // Spacing before the button
+                          Align(
+                            alignment: Alignment
+                                .centerRight, // Align the button to the right
+                            child: TextButton(
+                              onPressed: () {
+                                // Add your publish reply functionality here
+                                print("Reply Published: ${row1Data.textReply}");
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor:
+                                    AppColors.black, // Customize button color
+                              ),
+                              child: Text(
+                                "Publish Reply",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                            SizedBox(height: 10),
-                            Text(
-                              row1Data.hashtags,
-                              style:
-                                  TextStyle(fontSize: 14, color: AppColors.grey),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    
                   ),
-                  
                 ),
               ),
               SizedBox(height: 10),
@@ -402,6 +599,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                         // Row for logo and "Current Trends" text in the same line
                         Row(
                           children: [
+                            SizedBox(width: 8.0,),
                             Image.asset(
                               'logo/x.png',
                               width: 25,
@@ -455,6 +653,7 @@ class _TrendRocketPageState extends State<TrendRocketPage> {
                         // Row for logo and "Trending Now" text in the same line
                         Row(
                           children: [
+                            SizedBox(width: 8.0,),
                             Image.asset(
                               'logo/google.png',
                               width: 25,
