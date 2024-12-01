@@ -118,7 +118,8 @@ def precompute_replies():
             gif_reply_path = ""
 
             # Cache replies
-            db_manager.cache_reply(tweet_id, text_reply, meme_reply_url, gif_reply_path)
+            if text_reply:
+                db_manager.cache_reply(tweet_id, text_reply, meme_reply_url, gif_reply_path)
             print(f"Replies cached for tweet_id {tweet_id}")
         except Exception as e:
             print(f"Error processing tweet_id {tweet_id}: {e}")
@@ -129,25 +130,25 @@ def run_in_thread(task, *args, **kwargs):
     thread.start()
 
 
-# scraper = Twitter_Scraper(
-#         mail=None,
-#         username=os.getenv("TWITTER_USERNAME"),
-#         password=os.getenv("TWITTER_PASSWORD"),
-#     )
-#
-# scraper.login()
-#
-#
-# schedule.every(2).minutes.do(run_in_thread, scrape_tweets)
-# schedule.every(5).seconds.do(run_in_thread, process_scheduled_posts)
-# schedule.every(2).minutes.do(run_in_thread, precompute_replies)
-#
-#
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+scraper = Twitter_Scraper(
+        mail=None,
+        username=os.getenv("TWITTER_USERNAME"),
+        password=os.getenv("TWITTER_PASSWORD"),
+    )
 
-precompute_replies()
+scraper.login()
+
+
+schedule.every(2).minutes.do(run_in_thread, scrape_tweets)
+schedule.every(5).seconds.do(run_in_thread, process_scheduled_posts)
+schedule.every(2).minutes.do(run_in_thread, precompute_replies)
+
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)
+
+# precompute_replies()
 
 
 

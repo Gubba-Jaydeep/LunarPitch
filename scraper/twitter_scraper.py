@@ -88,6 +88,7 @@ class Twitter_Scraper:
             scrape_top,
             scrape_poster_details,
         )
+        self.driver.set_window_size(3560, 2440)
 
     def _config_scraper(
         self,
@@ -629,6 +630,7 @@ It may be due to the following:
         element = self.driver.find_element(By.XPATH, "//*[contains(text(),'Post your reply')]/../../../../..")
         element.click()
         sleep(5)
+        self.driver.set_window_size(3560, 2440)
 
         editor = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[@class='DraftEditor-editorContainer']"))
