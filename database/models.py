@@ -5,6 +5,10 @@ from typing import List
 class UserRequest(BaseModel):
     usernames: List[str]
 
+class PostTweetRequest(BaseModel):
+    tweet_id: str
+    tweet_content: str
+
 # Response Models
 class TweetResponse(BaseModel):
     tweet_id: str

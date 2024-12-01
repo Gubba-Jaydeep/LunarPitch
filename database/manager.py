@@ -53,6 +53,35 @@ class DatabaseManager:
                 )
                 """)
 
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS scheduled_posts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tweet_id TEXT NOT NULL,
+                    content_to_post TEXT NOT NULL,
+                    time_to_post DATETIME NOT NULL
+                )
+                """)
+
+        conn.commit()
+        conn.close()
+
+    def get_due_posts(self, current_time):
+        """Fetch posts that are due for posting."""
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT id, tweet_id, content_to_post FROM scheduled_posts
+        WHERE time_to_post <= ?
+        """, (current_time,))
+        posts = cursor.fetchall()
+        conn.close()
+        return posts
+
+    def delete_post(self, post_id):
+        """Delete a scheduled post by ID."""
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM scheduled_posts WHERE id = ?", (post_id,))
         conn.commit()
         conn.close()
 
@@ -69,6 +98,17 @@ class DatabaseManager:
     #     finally:
     #         conn.close()
 
+    def add_scheduled_post(self, tweet_id, content_to_post, time_to_post):
+        """Add a new scheduled post."""
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO scheduled_posts (tweet_id, content_to_post, time_to_post)
+        VALUES (?, ?, ?)
+        """, (tweet_id, content_to_post, time_to_post))
+        conn.commit()
+        conn.close()
+
     def read_users(self):
         conn = self._connect()
         cursor = conn.cursor()
@@ -80,7 +120,7 @@ class DatabaseManager:
     def delete_user(self, user_name):
         conn = self._connect()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM users WHERE username = ?", (user_name,))
+        cursor.execute("DELETE FROM users WHERE username = ?", [user_name])
         conn.commit()
         conn.close()
         print(f"User with ID {user_name} deleted successfully.")

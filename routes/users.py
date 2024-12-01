@@ -3,7 +3,7 @@ sys.path.append('/Users/jaydeepgubba/Documents/Projects/PythonProjects/Rocketium
 from fastapi import APIRouter, HTTPException
 from database.manager import DatabaseManager
 from database.models import UserRequest
-from database.queries import CREATE_USER_QUERY, READ_USERS_QUERY
+from database.queries import CREATE_USER_QUERY, READ_USERS_QUERY, GET_PROFILE_IMAGE
 
 router = APIRouter()
 db_manager = DatabaseManager()
@@ -22,7 +22,16 @@ async def get_users():
     users = db_manager.execute_query(READ_USERS_QUERY, fetch_all=True)
     if not users:
         raise HTTPException(status_code=404, detail="No users found.")
-    return [user[1] for user in users]
+
+    res=[]
+    for user in users:
+        handle = user[1]
+        data =  db_manager.execute_query(GET_PROFILE_IMAGE, (handle,), fetch_all=True)
+        if data:
+            res.append({"name": handle, "imageUrl": data[0][0]})
+        else:
+            res.append({"name": handle, "imageUrl": ""})
+    return res
 
 
 @router.post("/delete_user")

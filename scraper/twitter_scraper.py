@@ -625,19 +625,21 @@ It may be due to the following:
 
     def post_tweet(self, tweet_id, tweet_content):
         self.driver.get(f"https://x.com/zomato/status/{tweet_id}")
-        sleep(3)
+        sleep(5)
         element = self.driver.find_element(By.XPATH, "//*[contains(text(),'Post your reply')]/../../../../..")
         element.click()
+        sleep(5)
 
         editor = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[@class='DraftEditor-editorContainer']"))
         )
         editor.click()
+        sleep(2)
         actions = ActionChains(self.driver)
         actions.send_keys(tweet_content)
         actions.perform()
         reply_button = self.driver.find_element(By.XPATH, "//span[contains(text(),'Reply')]")
-
+        sleep(2)
         reply_button.click()
         sleep(5)
         return "Reply posted successfully."

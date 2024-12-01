@@ -20,6 +20,7 @@ import io
 from PIL import Image
 import time
 from botocore.exceptions import ClientError
+from services.text_generation import generate_summarisation
 
 MODEL_ID = "amazon.titan-image-generator-v2:0"
 
@@ -80,6 +81,7 @@ def generate_meme_reply(tweet_text, tweeter_name, tweeter_handle):
     """
 
     # Create a meme prompt based on the tweet content
+    prompt_to_generate_meme = generate_summarisation(tweet_text, tweeter_name, tweeter_handle)
     meme_prompt = f"Generate a funny meme image based on the following tweet: '''{tweet_text}''' posted by {tweeter_name} having twitter handle as {tweeter_handle}; Make sure the meme is funny."
 
     # Optionally, you can use a specific seed value for consistency in results
@@ -87,7 +89,7 @@ def generate_meme_reply(tweet_text, tweeter_name, tweeter_handle):
 
     try:
         # Generate the meme image from the prompt
-        meme_images = generate_image_from_prompt(meme_prompt, seed)
+        meme_images = generate_image_from_prompt(prompt_to_generate_meme, seed)
 
         # Save the generated meme image
         meme_image = meme_images[0]

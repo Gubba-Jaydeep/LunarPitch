@@ -15,3 +15,7 @@ INSERT INTO tweets (
 READ_TWEETS_QUERY = """
 SELECT * FROM tweets WHERE handle = ? ORDER BY timestamp DESC LIMIT ?
 """
+
+GET_PROFILE_IMAGE = """
+SELECT profile_image FROM tweets WHERE handle = ? ORDER BY timestamp DESC LIMIT 1
+"""
