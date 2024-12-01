@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter Web",
+            "request": "launch",
+            "type": "dart",
+            "program": "lunar_pitch/lib/main.dart",
+            "args": [
+                "--web-port=5000",
+                "--web-enable-expression-evaluation"
+            ],
+            "deviceId": "chrome"
+        }
+    ]
+}
